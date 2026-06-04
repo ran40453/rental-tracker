@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>租屋追蹤器</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.7.0/dist/tabler-icons.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#fff;--bg2:#f5f5f0;--bg3:#eeeee8;
+  --text:#1a1a1a;--text2:#666;--text3:#999;
+  --border:rgba(0,0,0,0.12);--border2:rgba(0,0,0,0.22);
+  --radius:8px;--radius-lg:12px;
+  --green:#1D9E75;--green-bg:#E1F5EE;--green-border:#5DCAA5;--green-text:#0F6E56;
+  --purple:#534AB7;--purple-bg:#EEEDFE;--purple-border:#AFA9EC;--purple-text:#534AB7;
+  --amber-bg:#FAEEDA;--amber-border:#EF9F27;--amber-text:#854F0B;
+  --red:#D85A30;--red-bg:#FAECE7;--red-border:#F0997B;
+}
+@media(prefers-color-scheme:dark){
+  :root{
+    --bg:#1c1c1a;--bg2:#252522;--bg3:#2e2e2a;
+    --text:#e8e8e0;--text2:#999;--text3:#666;
+    --border:rgba(255,255,255,0.1);--border2:rgba(255,255,255,0.2);
+    --green:#5DCAA5;--green-bg:#04342C;--green-border:#0F6E56;--green-text:#9FE1CB;
+    --purple:#AFA9EC;--purple-bg:#26215C;--purple-border:#534AB7;--purple-text:#CECBF6;
+    --amber-bg:#412402;--amber-border:#BA7517;--amber-text:#FAC775;
+    --red:#F0997B;--red-bg:#4A1B0C;--red-border:#993C1D;
+  }
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg3);color:var(--text);font-size:14px;min-height:100vh}
+.topbar{background:var(--bg);border-bottom:0.5px solid var(--border);padding:12px 20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;position:sticky;top:0;z-index:50}
+.topbar h1{font-size:17px;font-weight:600;flex:1;display:flex;align-items:center;gap:8px}
+.stats{display:flex;gap:8px;flex-wrap:wrap}
+.stat{background:var(--bg2);border-radius:var(--radius);padding:4px 10px;font-size:12px;color:var(--text2)}
+.stat b{color:var(--text);font-weight:600}
+.filterbar{background:var(--bg);border-bottom:0.5px solid var(--border);padding:10px 20px;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.filterbar select,.filterbar input[type=text],.filterbar input[type=number]{height:32px;padding:0 8px;border:0.5px solid var(--border2);border-radius:var(--radius);background:var(--bg2);color:var(--text);font-size:13px}
+.filterbar input[type=range]{width:100px;accent-color:var(--purple)}
+.flabel{font-size:12px;color:var(--text2);white-space:nowrap}
+.main{padding:16px 20px;max-width:1200px;margin:0 auto}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:12px}
+.card{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:16px;position:relative;transition:border-color 0.15s,opacity 0.2s}
+.card:hover{border-color:var(--border2)}
+.card.pinned{border:1.5px solid var(--purple-border)}
+.card.dismissed{opacity:0.4}
+.card-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;gap:8px}
+.card-title{font-weight:600;font-size:14px;line-height:1.4;flex:1}
+.card-actions{display:flex;gap:4px;flex-shrink:0}
+.btn-icon{width:30px;height:30px;border:0.5px solid var(--border);border-radius:var(--radius);background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;color:var(--text2)}
+.btn-icon:hover{background:var(--bg2);border-color:var(--border2)}
+.btn-icon.pin-active{color:var(--purple);border-color:var(--purple-border);background:var(--purple-bg)}
+.btn-icon.remove-active{color:var(--red);border-color:var(--red-border);background:var(--red-bg)}
+.price{font-size:22px;font-weight:700;color:var(--green);margin-bottom:10px;display:flex;align-items:baseline;gap:4px}
+.price span{font-size:12px;color:var(--text2);font-weight:400}
+.price-unknown{font-size:13px;color:var(--text3);margin-bottom:10px;font-style:italic}
+.tags{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px}
+.tag{font-size:11px;padding:2px 8px;border-radius:4px;background:var(--bg2);color:var(--text2);border:0.5px solid var(--border)}
+.tag.good{background:var(--green-bg);color:var(--green-text);border-color:var(--green-border)}
+.tag.warn{background:var(--amber-bg);color:var(--amber-text);border-color:var(--amber-border)}
+.tag.star{background:var(--purple-bg);color:var(--purple-text);border-color:var(--purple-border)}
+.summary{font-size:12px;color:var(--text2);line-height:1.6;border-top:0.5px solid var(--border);padding-top:8px;margin-top:4px}
+.post-link{font-size:12px;color:var(--purple);text-decoration:none;display:inline-flex;align-items:center;gap:4px;margin-top:6px}
+.post-link:hover{text-decoration:underline}
+.section-label{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;margin:20px 0 10px;display:flex;align-items:center;gap:6px}
+.add-btn{height:32px;padding:0 14px;border:0.5px solid var(--border2);border-radius:var(--radius);background:transparent;color:var(--text);font-size:13px;cursor:pointer;display:flex;align-items:center;gap:6px}
+.add-btn:hover{background:var(--bg2)}
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;align-items:center;justify-content:center;padding:16px}
+.modal-bg.open{display:flex}
+.modal{background:var(--bg);border-radius:var(--radius-lg);padding:24px;width:100%;max-width:500px;max-height:90vh;overflow-y:auto;border:0.5px solid var(--border)}
+.modal h2{font-size:16px;font-weight:600;margin-bottom:18px}
+.form-row{margin-bottom:13px}
+.form-row label{display:block;font-size:12px;color:var(--text2);margin-bottom:4px}
+.form-row input,.form-row select,.form-row textarea{width:100%;padding:7px 10px;border:0.5px solid var(--border2);border-radius:var(--radius);background:var(--bg2);color:var(--text);font-size:13px;font-family:inherit}
+.form-row input:focus,.form-row select:focus,.form-row textarea:focus{outline:none;border-color:var(--purple-border)}
+.form-row textarea{height:80px;resize:vertical}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.checkbox-row{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:13px}
+.checkbox-row label{display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer}
+.modal-actions{display:flex;gap:8px;margin-top:20px;justify-content:flex-end}
+.btn-primary{height:36px;padding:0 18px;background:var(--purple);color:#fff;border:none;border-radius:var(--radius);font-size:13px;cursor:pointer;font-family:inherit}
+.btn-primary:hover{opacity:0.88}
+.btn-cancel{height:36px;padding:0 14px;border:0.5px solid var(--border2);border-radius:var(--radius);background:transparent;color:var(--text2);font-size:13px;cursor:pointer;font-family:inherit}
+.empty{text-align:center;padding:60px 16px;color:var(--text3)}
+.empty i{font-size:36px;display:block;margin-bottom:10px}
+.show-dismissed{font-size:12px;color:var(--text3);cursor:pointer;padding:6px 0;display:inline-flex;align-items:center;gap:5px;margin-top:8px}
+.show-dismissed:hover{color:var(--text2)}
+.export-btn{height:32px;padding:0 14px;border:0.5px solid var(--border);border-radius:var(--radius);background:transparent;color:var(--text2);font-size:12px;cursor:pointer;display:flex;align-items:center;gap:5px}
+.export-btn:hover{background:var(--bg2)}
+.date-badge{font-size:11px;color:var(--text3);margin-top:6px}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <h1><i class="ti ti-building"></i> 租屋追蹤器</h1>
+  <div class="stats" id="stats"></div>
+  <button class="export-btn" onclick="exportCSV()"><i class="ti ti-download"></i> 匯出 CSV</button>
+  <button class="add-btn" onclick="openModal()"><i class="ti ti-plus"></i> 新增物件</button>
+</div>
+
+<div class="filterbar">
+  <span class="flabel">排序</span>
+  <select id="sort" onchange="render()">
+    <option value="pinned">釘選優先</option>
+    <option value="price_asc">租金低→高</option>
+    <option value="price_desc">租金高→低</option>
+    <option value="date_desc">最新加入</option>
+  </select>
+  <span class="flabel">捷運站</span>
+  <select id="filterArea" onchange="render()">
+    <option value="">全部</option>
+    <option value="頂埔">頂埔</option>
+    <option value="土城">土城</option>
+    <option value="海山">海山</option>
+    <option value="府中">府中</option>
+    <option value="亞東醫院">亞東醫院</option>
+    <option value="永寧">永寧</option>
+    <option value="板橋">板橋</option>
+    <option value="新埔">新埔</option>
+    <option value="江子翠">江子翠</option>
+  </select>
+  <span class="flabel">租金上限</span>
+  <input type="range" id="maxPrice" min="5000" max="20000" step="500" value="14000" oninput="document.getElementById('priceOut').textContent='$'+Number(this.value).toLocaleString();render()">
+  <span class="flabel" id="priceOut">$14,000</span>
+  <span class="flabel">房型</span>
+  <select id="filterType" onchange="render()">
+    <option value="">全部</option>
+    <option value="套房">套房</option>
+    <option value="雅房">雅房</option>
+    <option value="分租套房">分租套房</option>
+    <option value="整層">整層</option>
+  </select>
+  <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text2);cursor:pointer"><input type="checkbox" id="filterElevator" onchange="render()"> 電梯</label>
+  <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text2);cursor:pointer"><input type="checkbox" id="filterParking" onchange="render()"> 機車位</label>
+  <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text2);cursor:pointer"><input type="checkbox" id="filterWindow" onchange="render()"> 對外窗</label>
+</div>
+
+<div class="main">
+  <div id="pinned-section"></div>
+  <div id="normal-section"></div>
+  <div id="dismissed-section"></div>
+</div>
+
+<div class="modal-bg" id="modal">
+  <div class="modal">
+    <h2><i class="ti ti-plus" style="margin-right:6px"></i>新增物件</h2>
+    <div class="form-row">
+      <label>標題 / 地址 *</label>
+      <input type="text" id="f-title" placeholder="例：土城裕民路 麥當勞商圈套房">
+    </div>
+    <div class="form-grid">
+      <div class="form-row">
+        <label>月租金（元）</label>
+        <input type="number" id="f-price" placeholder="9000">
+      </div>
+      <div class="form-row">
+        <label>坪數</label>
+        <input type="number" id="f-size" placeholder="8" step="0.1">
+      </div>
+    </div>
+    <div class="form-grid">
+      <div class="form-row">
+        <label>樓層（例：3F/7F）</label>
+        <input type="text" id="f-floor" placeholder="3F/7F">
+      </div>
+      <div class="form-row">
+        <label>押金（個月）</label>
+        <input type="number" id="f-deposit" placeholder="2">
+      </div>
+    </div>
+    <div class="form-grid">
+      <div class="form-row">
+        <label>房型</label>
+        <select id="f-type">
+          <option>套房</option>
+          <option>雅房</option>
+          <option>分租套房</option>
+          <option>整層</option>
+          <option>其他</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label>最近捷運站</label>
+        <select id="f-station">
+          <option value="">未提及</option>
+          <option>頂埔</option><option>土城</option><option>海山</option>
+          <option>府中</option><option>亞東醫院</option><option>永寧</option>
+          <option>板橋</option><option>新埔</option><option>江子翠</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-grid">
+      <div class="form-row">
+        <label>電費計算方式</label>
+        <select id="f-elec">
+          <option value="">未提及</option>
+          <option>獨立電表</option>
+          <option>依實際用量</option>
+          <option>包水電</option>
+          <option>台電分攤</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label>電梯</label>
+        <select id="f-elevator">
+          <option value="">未提及</option>
+          <option>有</option>
+          <option>無</option>
+        </select>
+      </div>
+    </div>
+    <div class="checkbox-row">
+      <label><input type="checkbox" id="f-window"> 對外窗</label>
+      <label><input type="checkbox" id="f-net"> 含網路</label>
+      <label><input type="checkbox" id="f-parking"> 機車位</label>
+      <label><input type="checkbox" id="f-wardrobe"> 衣櫃</label>
+      <label><input type="checkbox" id="f-pets"> 可養寵物</label>
+    </div>
+    <div class="form-row">
+      <label>貼文連結</label>
+      <input type="url" id="f-link" placeholder="https://www.facebook.com/...">
+    </div>
+    <div class="form-row">
+      <label>備註 / 貼文摘要</label>
+      <textarea id="f-note" placeholder="貼文原文、注意事項、或備忘..."></textarea>
+    </div>
+    <div class="form-row">
+      <label>來源社團</label>
+      <input type="text" id="f-source" placeholder="例：土城海山長庚租屋大家庭">
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal()">取消</button>
+      <button class="btn-primary" onclick="addListing()">儲存物件</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const SAMPLE = [
+  {id:1,title:'土城裕民路 運動場/麥當勞商圈',price:9000,size:0,floor:'',type:'套房',station:'土城',elec:'依實際用量',elevator:'',window:false,net:false,parking:false,wardrobe:false,pets:false,deposit:2,link:'',note:'租金$9000元。單身上班族。一年約2個月押金。電費一度5.5元。貼文日期：3月20日（非24小時內）',source:'我是土城人（頂埔大小事）',date:'2026-03-20',pinned:false,dismissed:false},
+  {id:2,title:'土城海山站附近 學成路165號旁',price:8500,size:0,floor:'',type:'套房',station:'海山',elec:'',elevator:'',window:false,net:false,parking:false,wardrobe:false,pets:false,deposit:0,link:'',note:'板南線海山捷運站步行3分鐘。⚠️ 限女性（依規則排除）',source:'我是土城人（頂埔大小事）',date:'2026-03-20',pinned:false,dismissed:true},
+  {id:3,title:'土城區莊園街 個人獨立衛浴（待確認）',price:0,size:0,floor:'',type:'套房',station:'土城',elec:'',elevator:'',window:false,net:false,parking:false,wardrobe:false,pets:false,deposit:0,link:'',note:'#出租 位在：新北市土城區莊園街。獨立使用空間、個人獨立衛浴。來源：土城海山長庚租屋大家庭（李艷珍）。貼文日期與租金需手動確認。',source:'土城海山長庚租屋大家庭',date:'2026-06-04',pinned:false,dismissed:false},
+];
+
+let listings = JSON.parse(localStorage.getItem('rental_listings_v2') || 'null') || SAMPLE;
+let showDismissed = false;
+let nextId = listings.reduce((m,l)=>Math.max(m,l.id),0)+1;
+
+function save(){localStorage.setItem('rental_listings_v2',JSON.stringify(listings));}
+
+function render(){
+  const sort = document.getElementById('sort').value;
+  const area = document.getElementById('filterArea').value;
+  const maxP = parseInt(document.getElementById('maxPrice').value);
+  const fType = document.getElementById('filterType').value;
+  const fElev = document.getElementById('filterElevator').checked;
+  const fPark = document.getElementById('filterParking').checked;
+  const fWin  = document.getElementById('filterWindow').checked;
+
+  function matches(l){
+    if(area && l.station !== area) return false;
+    if(l.price > 0 && l.price > maxP) return false;
+    if(fType && l.type !== fType) return false;
+    if(fElev && l.elevator !== '有') return false;
+    if(fPark && !l.parking) return false;
+    if(fWin  && !l.window) return false;
+    return true;
+  }
+
+  function sortFn(a,b){
+    if(sort==='price_asc') return (a.price||99999)-(b.price||99999);
+    if(sort==='price_desc') return (b.price||0)-(a.price||0);
+    if(sort==='date_desc') return b.date.localeCompare(a.date);
+    return 0;
+  }
+
+  const all = listings.filter(matches);
+  const pinned = all.filter(l=>l.pinned&&!l.dismissed).sort(sortFn);
+  const normal = all.filter(l=>!l.pinned&&!l.dismissed).sort(sortFn);
+  const dismissed = listings.filter(l=>l.dismissed);
+
+  document.getElementById('pinned-section').innerHTML = pinned.length
+    ? `<div class="section-label"><i class="ti ti-pin"></i> 釘選（${pinned.length}）</div><div class="grid">${pinned.map(cardHTML).join('')}</div>`
+    : '';
+
+  document.getElementById('normal-section').innerHTML = normal.length
+    ? `<div class="section-label"><i class="ti ti-list"></i> 物件列表（${normal.length}）</div><div class="grid">${normal.map(cardHTML).join('')}</div>`
+    : `<div class="empty"><i class="ti ti-home-off"></i><br>沒有符合條件的物件<br><small>調整篩選條件，或新增物件</small></div>`;
+
+  document.getElementById('dismissed-section').innerHTML = dismissed.length
+    ? `<div class="show-dismissed" onclick="showDismissed=!showDismissed;render()"><i class="ti ti-eye${showDismissed?'-off':''}"></i> ${showDismissed?'隱藏':'顯示'}已移除物件（${dismissed.length}）</div>${showDismissed?`<div class="grid" style="margin-top:10px">${dismissed.map(cardHTML).join('')}</div>`:''}`
+    : '';
+
+  const active = listings.filter(l=>!l.dismissed);
+  const pinCount = active.filter(l=>l.pinned).length;
+  const prices = active.filter(l=>l.price>0).map(l=>l.price);
+  const avgP = prices.length ? Math.round(prices.reduce((s,p)=>s+p,0)/prices.length) : 0;
+  const minP = prices.length ? Math.min(...prices) : 0;
+  document.getElementById('stats').innerHTML =
+    `<div class="stat">共 <b>${active.length}</b> 筆</div>`+
+    `<div class="stat">釘選 <b>${pinCount}</b></div>`+
+    (minP?`<div class="stat">最低 <b>$${minP.toLocaleString()}</b></div>`:'')+
+    (avgP?`<div class="stat">平均 <b>$${avgP.toLocaleString()}</b></div>`:'');
+}
+
+function cardHTML(l){
+  const stars = [];
+  if(l.elevator==='有') stars.push('⭐ 電梯');
+  if(l.parking) stars.push('⭐ 機車位');
+  if(l.wardrobe) stars.push('⭐ 衣櫃');
+  if(l.pets) stars.push('⭐ 可寵物');
+
+  const warns = [];
+  if(!l.window) warns.push('窗戶未確認');
+  if(!l.net) warns.push('網路未確認');
+
+  const elecBad = l.elec === '台電分攤';
+
+  return `<div class="card${l.pinned?' pinned':''}${l.dismissed?' dismissed':''}">
+    <div class="card-header">
+      <div class="card-title">${escHtml(l.title)}</div>
+      <div class="card-actions">
+        <button class="btn-icon${l.pinned?' pin-active':''}" onclick="toggle(${l.id},'pinned')" title="${l.pinned?'取消釘選':'釘選好物件'}">
+          <i class="ti ti-pin"></i>
+        </button>
+        <button class="btn-icon${l.dismissed?' remove-active':''}" onclick="toggle(${l.id},'dismissed')" title="${l.dismissed?'還原':'移除（沒興趣）'}">
+          <i class="ti ti-x"></i>
+        </button>
+      </div>
+    </div>
+    ${l.price>0
+      ? `<div class="price">$${l.price.toLocaleString()}<span>/月${l.size>0?' · '+l.size+'坪':''}</span></div>`
+      : `<div class="price-unknown">租金未提及，需確認</div>`}
+    <div class="tags">
+      <span class="tag">${escHtml(l.type)}</span>
+      ${l.station?`<span class="tag good"><i class="ti ti-train" style="font-size:11px"></i> ${escHtml(l.station)}站</span>`:''}
+      ${l.floor?`<span class="tag">${escHtml(l.floor)}樓</span>`:''}
+      ${l.deposit>0?`<span class="tag">押${l.deposit}個月</span>`:''}
+      ${l.elec?`<span class="tag${elecBad?' warn':' good'}">${escHtml(l.elec)}</span>`:''}
+      ${l.net?`<span class="tag good">含網路</span>`:''}
+      ${l.window?`<span class="tag good">對外窗</span>`:''}
+      ${stars.map(s=>`<span class="tag star">${s}</span>`).join('')}
+      ${warns.map(w=>`<span class="tag warn">${w}</span>`).join('')}
+    </div>
+    ${l.note?`<div class="summary">${escHtml(l.note.slice(0,150))}${l.note.length>150?'…':''}</div>`:''}
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-top:6px">
+      ${l.link?`<a class="post-link" href="${escHtml(l.link)}" target="_blank"><i class="ti ti-external-link"></i> 查看貼文</a>`:'<span></span>'}
+      <span class="date-badge">${escHtml(l.source||'')} ${escHtml(l.date)}</span>
+    </div>
+  </div>`;
+}
+
+function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+function toggle(id, field){
+  const l = listings.find(l=>l.id===id);
+  if(l){l[field]=!l[field];save();render();}
+}
+
+function openModal(){document.getElementById('modal').classList.add('open');}
+function closeModal(){document.getElementById('modal').classList.remove('open');}
+
+function addListing(){
+  const title = document.getElementById('f-title').value.trim();
+  if(!title){alert('請填寫標題');return;}
+  listings.unshift({
+    id: nextId++,
+    title,
+    price: parseInt(document.getElementById('f-price').value)||0,
+    size: parseFloat(document.getElementById('f-size').value)||0,
+    floor: document.getElementById('f-floor').value.trim(),
+    type: document.getElementById('f-type').value,
+    station: document.getElementById('f-station').value,
+    elec: document.getElementById('f-elec').value,
+    elevator: document.getElementById('f-elevator').value,
+    window: document.getElementById('f-window').checked,
+    net: document.getElementById('f-net').checked,
+    parking: document.getElementById('f-parking').checked,
+    wardrobe: document.getElementById('f-wardrobe').checked,
+    pets: document.getElementById('f-pets').checked,
+    deposit: parseInt(document.getElementById('f-deposit').value)||0,
+    link: document.getElementById('f-link').value.trim(),
+    note: document.getElementById('f-note').value.trim(),
+    source: document.getElementById('f-source').value.trim(),
+    date: new Date().toISOString().slice(0,10),
+    pinned: false,
+    dismissed: false
+  });
+  save(); render(); closeModal();
+  ['f-title','f-price','f-size','f-floor','f-deposit','f-link','f-note','f-source'].forEach(id=>document.getElementById(id).value='');
+  ['f-window','f-net','f-parking','f-wardrobe','f-pets'].forEach(id=>document.getElementById(id).checked=false);
+  document.getElementById('f-station').value='';
+  document.getElementById('f-elec').value='';
+  document.getElementById('f-elevator').value='';
+}
+
+function exportCSV(){
+  const headers = ['標題','租金','坪數','樓層','房型','捷運站','電費','電梯','對外窗','網路','機車位','衣櫃','押金','日期','來源','連結','備註'];
+  const rows = listings.filter(l=>!l.dismissed).map(l=>[
+    l.title,l.price||'',l.size||'',l.floor,l.type,l.station,l.elec,l.elevator,
+    l.window?'是':'否',l.net?'是':'否',l.parking?'是':'否',l.wardrobe?'是':'否',
+    l.deposit||'',l.date,l.source,l.link,l.note
+  ].map(v=>'"'+String(v||'').replace(/"/g,'""')+'"'));
+  const csv = [headers.map(h=>'"'+h+'"'), ...rows].map(r=>r.join(',')).join('\n');
+  const blob = new Blob(['﻿'+csv], {type:'text/csv;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `租屋紀錄_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+}
+
+document.getElementById('modal').addEventListener('click', e=>{
+  if(e.target === e.currentTarget) closeModal();
+});
+
+render();
+</script>
+</body>
+</html>
