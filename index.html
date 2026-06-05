@@ -363,7 +363,7 @@ ${warns.map(w=>`<span class="tag warn">${w}</span>`).join('')}
 </div>
 ${l.note?`<div class="summary">${escHtml(l.note.slice(0,150))}${l.note.length>150?'…':''}</div>`:''}
 <div style="display:flex;align-items:center;justify-content:space-between;margin-top:6px">
-${l.link?`<a class="post-link" href="${escHtml(l.link)}" target="_blank"><i class="ti ti-external-link"></i> 查看${l.source==='591租屋網'?'591頁面':'貼文'}</a>`:'<span></span>'}
+${(()=>{const isUrl=l.link&&/^https?:\/\//i.test(l.link);if(isUrl)return `<a class="post-link" href="${escHtml(l.link)}" target="_blank"><i class="ti ti-external-link"></i> 查看${l.source==='591租屋網'?'591頁面':'貼文'}</a>`;if(l.link)return `<span class="post-link" style="color:var(--text2)" title="${escHtml(l.link)}"><i class="ti ti-phone"></i> ${escHtml(l.link)}</span>`;return '<span></span>';})()}
 <span class="date-badge">${escHtml(l.source||'')} ${escHtml(l.date)}</span>
 </div>
 </div>`;
