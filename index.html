@@ -32,8 +32,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .topbar{background:var(--bg);border-bottom:0.5px solid var(--border);padding:12px 20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;position:sticky;top:0;z-index:50}
 .topbar h1{font-size:17px;font-weight:600;flex:1;display:flex;align-items:center;gap:8px}
 .stats{display:flex;gap:8px;flex-wrap:wrap}
-.stat{background:var(--bg2);border-radius:var(--radius);padding:4px 10px;font-size:12px;color:var(--text2)}
+.stat{background:var(--bg2);border-radius:var(--radius);padding:4px 10px;font-size:12px;color:var(--text2);cursor:default;user-select:none;transition:.15s}
 .stat b{color:var(--text);font-weight:600}
+.stat.clickable{cursor:pointer}
+.stat.clickable:hover{background:var(--purple-bg);color:var(--purple-text);border-color:var(--purple-border)}
+.stat.active{background:var(--purple);color:#fff !important;border:1.5px solid var(--purple)}
+.stat.active b{color:#fff}
 .filterbar{background:var(--bg);border-bottom:0.5px solid var(--border);padding:10px 20px;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
 .filterbar select,.filterbar input[type=text],.filterbar input[type=number]{height:32px;padding:0 8px;border:0.5px solid var(--border2);border-radius:var(--radius);background:var(--bg2);color:var(--text);font-size:13px}
 .filterbar input[type=range]{width:100px;accent-color:var(--purple)}
@@ -253,11 +257,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 const SAMPLE = []; // 資料改由 data_591.json + data_fb.json 動態載入
 
 // v4: combined 591 + FB data
+let quickFilter = ""; // "", "pinned", "591", "fb"
 let listings = JSON.parse(localStorage.getItem('rental_listings_v4') || 'null') || SAMPLE;
 let showDismissed = false;
 let nextId = listings.reduce((m,l)=>Math.max(m,l.id),0)+1;
 
 function save(){localStorage.setItem('rental_listings_v4',JSON.stringify(listings));}
+
+function setQuickFilter(f){
+quickFilter = (quickFilter===f)?'':f; // 點同一個取消
+render();
+}
 
 function render(){
 const sort = document.getElementById('sort').value;
@@ -267,9 +277,12 @@ const fType = document.getElementById('filterType').value;
 const fElev = document.getElementById('filterElevator').checked;
 const fPark = document.getElementById('filterParking').checked;
 const fWin = document.getElementById('filterWindow').checked;
-const fSrc = document.getElementById('filterSource').value;
+// quickFilter 覆蓋 filterSource
+const fSrc = quickFilter==='591' ? '591租屋網'
+           : quickFilter==='fb'  ? 'FB社團'
+           : document.getElementById('filterSource').value;
 
-function matches(l){
+function matchesFilter(l){
 if(fSrc && l.source !== fSrc) return false;
 if(area && l.station !== area) return false;
 if(l.price > 0 && l.price > maxP) return false;
@@ -288,23 +301,38 @@ if(sort==='date_desc') return b.date.localeCompare(a.date);
 return 0;
 }
 
-const all = listings.filter(matches);
-const pinned = all.filter(l=>l.pinned&&!l.dismissed).sort(sortFn);
-const normal = all.filter(l=>!l.pinned&&!l.dismissed).sort(sortFn);
+// 釘選永遠顯示（不受租金上限過濾），只受來源 / 捷運站過濾
+function matchesPinned(l){
+if(fSrc && l.source !== fSrc) return false;
+if(area && l.station !== area) return false;
+return true;
+}
+
+const allPinned = listings.filter(l=>l.pinned&&!l.dismissed&&matchesPinned(l)).sort(sortFn);
+const allNormal = listings.filter(l=>!l.pinned&&!l.dismissed&&matchesFilter(l)).sort(sortFn);
 const dismissed = listings.filter(l=>l.dismissed);
 
-document.getElementById('pinned-section').innerHTML = pinned.length
-? `<div class="section-label"><i class="ti ti-pin"></i> 釘選（${pinned.length}）</div><div class="grid">${pinned.map(cardHTML).join('')}</div>`
+// quickFilter=pinned 時只顯示釘選區
+const showPinned = quickFilter!=='pinned' || allPinned.length > 0;
+const showNormal = quickFilter!=='pinned';
+
+document.getElementById('pinned-section').innerHTML = allPinned.length && showPinned
+? `<div class="section-label"><i class="ti ti-pin"></i> 釘選（${allPinned.length}）</div><div class="grid">${allPinned.map(cardHTML).join('')}</div>`
 : '';
 
-document.getElementById('normal-section').innerHTML = normal.length
-? `<div class="section-label"><i class="ti ti-list"></i> 物件列表（${normal.length}）</div><div class="grid">${normal.map(cardHTML).join('')}</div>`
-: `<div class="empty"><i class="ti ti-home-off"></i><br>沒有符合條件的物件<br><small>調整篩選條件，或新增物件</small></div>`;
+if(showNormal){
+document.getElementById('normal-section').innerHTML = allNormal.length
+? `<div class="section-label"><i class="ti ti-list"></i> 物件列表（${allNormal.length}）</div><div class="grid">${allNormal.map(cardHTML).join('')}</div>`
+: `<div class="empty"><i class="ti ti-home-off"></i><br>沒有符合條件的物件</div>`;
+} else {
+document.getElementById('normal-section').innerHTML = '';
+}
 
-document.getElementById('dismissed-section').innerHTML = dismissed.length
+document.getElementById('dismissed-section').innerHTML = !quickFilter && dismissed.length
 ? `<div class="show-dismissed" onclick="showDismissed=!showDismissed;render()"><i class="ti ti-eye${showDismissed?'-off':''}"></i> ${showDismissed?'隱藏':'顯示'}已移除物件（${dismissed.length}）</div>${showDismissed?`<div class="grid" style="margin-top:10px">${dismissed.map(cardHTML).join('')}</div>`:''}`
 : '';
 
+// stats bar — 釘選/591/FB 為可點擊篩選鈕
 const active = listings.filter(l=>!l.dismissed);
 const pinCount = active.filter(l=>l.pinned).length;
 const prices = active.filter(l=>l.price>0).map(l=>l.price);
@@ -314,9 +342,9 @@ const cnt591 = active.filter(l=>l.source==='591租屋網').length;
 const cntFB = active.filter(l=>l.source==='FB社團').length;
 document.getElementById('stats').innerHTML =
 `<div class="stat">共 <b>${active.length}</b> 筆</div>`+
-`<div class="stat">釘選 <b>${pinCount}</b></div>`+
-(cnt591?`<div class="stat">591 <b>${cnt591}</b></div>`:'')+
-(cntFB?`<div class="stat">FB <b>${cntFB}</b></div>`:'')+
+(pinCount?`<div class="stat clickable${quickFilter==='pinned'?' active':''}" onclick="setQuickFilter('pinned')" title="只看釘選">📌 釘選 <b>${pinCount}</b></div>`:'')+
+(cnt591?`<div class="stat clickable${quickFilter==='591'?' active':''}" onclick="setQuickFilter('591')" title="只看591">591 <b>${cnt591}</b></div>`:'')+
+(cntFB?`<div class="stat clickable${quickFilter==='fb'?' active':''}" onclick="setQuickFilter('fb')" title="只看FB社團">FB <b>${cntFB}</b></div>`:'')+
 (minP?`<div class="stat">最低 <b>$${minP.toLocaleString()}</b></div>`:'')+
 (avgP?`<div class="stat">均 <b>$${avgP.toLocaleString()}</b></div>`:'');
 }
