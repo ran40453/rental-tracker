@@ -529,6 +529,7 @@ function toggleView(){
   const btn=document.getElementById('viewToggle');
   btn.innerHTML=viewMode==='list'?'<i class="ti ti-layout-grid"></i> 磚塊':'<i class="ti ti-layout-list"></i> 清單';
   if(viewMode==='list')btn.classList.add('active');else btn.classList.remove('active');
+  render();
 }
 
 async function syncToGitHub(){
