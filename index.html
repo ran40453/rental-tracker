@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>租屋追蹤器</title>
+<title>ç§å±è¿½è¹¤å¨</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.7.0/dist/tabler-icons.min.css">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -94,59 +94,76 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .export-btn{height:32px;padding:0 14px;border:0.5px solid var(--border);border-radius:var(--radius);background:transparent;color:var(--text2);font-size:12px;cursor:pointer;display:flex;align-items:center;gap:5px}
 .export-btn:hover{background:var(--bg2)}
 .date-badge{font-size:11px;color:var(--text3);margin-top:6px}
+.view-toggle{height:32px;padding:0 12px;border:0.5px solid var(--border);border-radius:var(--radius);background:transparent;color:var(--text2);font-size:12px;cursor:pointer;display:flex;align-items:center;gap:5px}
+.view-toggle:hover{background:var(--bg2)}
+.view-toggle.active{background:var(--purple-bg);color:var(--purple-text);border-color:var(--purple-border)}
+.sync-btn{height:32px;padding:0 12px;border:0.5px solid var(--purple-border);border-radius:var(--radius);background:var(--purple-bg);color:var(--purple-text);font-size:12px;cursor:pointer;display:flex;align-items:center;gap:5px}
+.sync-btn:hover{opacity:0.85}
+.main.list-mode .grid{display:flex;flex-direction:column;gap:6px}
+.main.list-mode .card{display:flex;align-items:center;padding:8px 14px;gap:12px}
+.main.list-mode .card-header{margin-bottom:0;flex:3;min-width:0}
+.main.list-mode .card-title{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.main.list-mode .price{margin-bottom:0;font-size:15px;width:96px;flex-shrink:0}
+.main.list-mode .price-unknown{margin-bottom:0;width:96px;flex-shrink:0;font-size:12px}
+.main.list-mode .tags{margin-bottom:0;flex:2;flex-wrap:nowrap;overflow:hidden;gap:3px}
+.main.list-mode .summary{display:none}
+.main.list-mode .card>div:last-child{flex-shrink:0;margin-top:0}
+.main.list-mode .date-badge{display:none}
 </style>
 </head>
 <body>
 
 <div class="topbar">
-<h1><i class="ti ti-building"></i> 租屋追蹤器</h1>
+<h1><i class="ti ti-building"></i> ç§å±è¿½è¹¤å¨</h1>
 <div class="stats" id="stats"></div>
-<button class="export-btn" onclick="exportCSV()"><i class="ti ti-download"></i> 匯出 CSV</button>
-<button class="add-btn" onclick="openModal()"><i class="ti ti-plus"></i> 新增物件</button>
+<button class="view-toggle" id="viewToggle" onclick="toggleView()"><i class="ti ti-layout-list"></i> 清單</button>
+<button class="sync-btn" onclick="syncToGitHub()"><i class="ti ti-cloud-upload"></i> 同步</button>
+<button class="export-btn" onclick="exportCSV()"><i class="ti ti-download"></i> å¯åº CSV</button>
+<button class="add-btn" onclick="openModal()"><i class="ti ti-plus"></i> æ°å¢ç©ä»¶</button>
 </div>
 
 <div class="filterbar">
-<span class="flabel">排序</span>
+<span class="flabel">æåº</span>
 <select id="sort" onchange="render()">
-<option value="score_desc">評分高→低</option>
-<option value="pinned">釘選優先</option>
-<option value="price_asc">租金低→高</option>
-<option value="price_desc">租金高→低</option>
-<option value="date_desc">最新加入</option>
+<option value="score_desc">è©åé«âä½</option>
+<option value="pinned">éé¸åªå</option>
+<option value="price_asc">ç§éä½âé«</option>
+<option value="price_desc">ç§éé«âä½</option>
+<option value="date_desc">ææ°å å¥</option>
 </select>
-<span class="flabel">來源</span>
+<span class="flabel">ä¾æº</span>
 <select id="filterSource" onchange="render()">
-<option value="">全部</option>
-<option value="591租屋網">591租屋網</option>
-<option value="FB社團">FB社團</option>
+<option value="">å¨é¨</option>
+<option value="591ç§å±ç¶²">591ç§å±ç¶²</option>
+<option value="FBç¤¾å">FBç¤¾å</option>
 </select>
-<span class="flabel">捷運站</span>
+<span class="flabel">æ·éç«</span>
 <select id="filterArea" onchange="render()">
-<option value="">全部</option>
-<option value="頂埔">頂埔</option>
-<option value="土城">土城</option>
-<option value="海山">海山</option>
-<option value="府中">府中</option>
-<option value="亞東醫院">亞東醫院</option>
-<option value="永寧">永寧</option>
-<option value="板橋">板橋</option>
-<option value="新埔">新埔</option>
-<option value="江子翠">江子翠</option>
+<option value="">å¨é¨</option>
+<option value="é å">é å</option>
+<option value="åå">åå</option>
+<option value="æµ·å±±">æµ·å±±</option>
+<option value="åºä¸­">åºä¸­</option>
+<option value="äºæ±é«é¢">äºæ±é«é¢</option>
+<option value="æ°¸å¯§">æ°¸å¯§</option>
+<option value="æ¿æ©">æ¿æ©</option>
+<option value="æ°å">æ°å</option>
+<option value="æ±å­ç¿ ">æ±å­ç¿ </option>
 </select>
-<span class="flabel">租金上限</span>
+<span class="flabel">ç§éä¸é</span>
 <input type="range" id="maxPrice" min="5000" max="20000" step="500" value="15000" oninput="document.getElementById('priceOut').textContent='$'+Number(this.value).toLocaleString();render()">
 <span class="flabel" id="priceOut">$15,000</span>
-<span class="flabel">房型</span>
+<span class="flabel">æ¿å</span>
 <select id="filterType" onchange="render()">
-<option value="">全部</option>
-<option value="套房">套房</option>
-<option value="雅房">雅房</option>
-<option value="分租套房">分租套房</option>
-<option value="整層">整層</option>
+<option value="">å¨é¨</option>
+<option value="å¥æ¿">å¥æ¿</option>
+<option value="éæ¿">éæ¿</option>
+<option value="åç§å¥æ¿">åç§å¥æ¿</option>
+<option value="æ´å±¤">æ´å±¤</option>
 </select>
-<label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text2);cursor:pointer"><input type="checkbox" id="filterElevator" onchange="render()"> 電梯</label>
-<label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text2);cursor:pointer"><input type="checkbox" id="filterParking" onchange="render()"> 機車位</label>
-<label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text2);cursor:pointer"><input type="checkbox" id="filterWindow" onchange="render()"> 對外窗</label>
+<label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text2);cursor:pointer"><input type="checkbox" id="filterElevator" onchange="render()"> é»æ¢¯</label>
+<label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text2);cursor:pointer"><input type="checkbox" id="filterParking" onchange="render()"> æ©è»ä½</label>
+<label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text2);cursor:pointer"><input type="checkbox" id="filterWindow" onchange="render()"> å°å¤çª</label>
 </div>
 
 <div class="main">
@@ -157,115 +174,116 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
 <div class="modal-bg" id="modal">
 <div class="modal">
-<h2><i class="ti ti-plus" style="margin-right:6px"></i>新增物件</h2>
+<h2><i class="ti ti-plus" style="margin-right:6px"></i>æ°å¢ç©ä»¶</h2>
 <div class="form-row">
-<label>標題 / 地址 *</label>
-<input type="text" id="f-title" placeholder="例：土城裕民路 麥當勞商圈套房">
+<label>æ¨é¡ / å°å *</label>
+<input type="text" id="f-title" placeholder="ä¾ï¼ååè£æ°è·¯ éº¥ç¶åååå¥æ¿">
 </div>
 <div class="form-grid">
 <div class="form-row">
-<label>月租金（元）</label>
+<label>æç§éï¼åï¼</label>
 <input type="number" id="f-price" placeholder="9000">
 </div>
 <div class="form-row">
-<label>坪數</label>
+<label>åªæ¸</label>
 <input type="number" id="f-size" placeholder="8" step="0.1">
 </div>
 </div>
 <div class="form-grid">
 <div class="form-row">
-<label>樓層（例：3F/7F）</label>
+<label>æ¨å±¤ï¼ä¾ï¼3F/7Fï¼</label>
 <input type="text" id="f-floor" placeholder="3F/7F">
 </div>
 <div class="form-row">
-<label>押金（個月）</label>
+<label>æ¼éï¼åæï¼</label>
 <input type="number" id="f-deposit" placeholder="2">
 </div>
 </div>
 <div class="form-grid">
 <div class="form-row">
-<label>房型</label>
+<label>æ¿å</label>
 <select id="f-type">
-<option>套房</option>
-<option>雅房</option>
-<option>分租套房</option>
-<option>整層</option>
-<option>其他</option>
+<option>å¥æ¿</option>
+<option>éæ¿</option>
+<option>åç§å¥æ¿</option>
+<option>æ´å±¤</option>
+<option>å¶ä»</option>
 </select>
 </div>
 <div class="form-row">
-<label>最近捷運站</label>
+<label>æè¿æ·éç«</label>
 <select id="f-station">
-<option value="">未提及</option>
-<option>頂埔</option><option>土城</option><option>海山</option>
-<option>府中</option><option>亞東醫院</option><option>永寧</option>
-<option>板橋</option><option>新埔</option><option>江子翠</option>
+<option value="">æªæå</option>
+<option>é å</option><option>åå</option><option>æµ·å±±</option>
+<option>åºä¸­</option><option>äºæ±é«é¢</option><option>æ°¸å¯§</option>
+<option>æ¿æ©</option><option>æ°å</option><option>æ±å­ç¿ </option>
 </select>
 </div>
 </div>
 <div class="form-grid">
 <div class="form-row">
-<label>電費計算方式</label>
+<label>é»è²»è¨ç®æ¹å¼</label>
 <select id="f-elec">
-<option value="">未提及</option>
-<option>獨立電表</option>
-<option>依實際用量</option>
-<option>包水電</option>
-<option>台電分攤</option>
+<option value="">æªæå</option>
+<option>ç¨ç«é»è¡¨</option>
+<option>ä¾å¯¦éç¨é</option>
+<option>åæ°´é»</option>
+<option>å°é»åæ¤</option>
 </select>
 </div>
 <div class="form-row">
-<label>電梯</label>
+<label>é»æ¢¯</label>
 <select id="f-elevator">
-<option value="">未提及</option>
-<option>有</option>
-<option>無</option>
+<option value="">æªæå</option>
+<option>æ</option>
+<option>ç¡</option>
 </select>
 </div>
 </div>
 <div class="checkbox-row">
-<label><input type="checkbox" id="f-window"> 對外窗</label>
-<label><input type="checkbox" id="f-net"> 含網路</label>
-<label><input type="checkbox" id="f-parking"> 機車位</label>
-<label><input type="checkbox" id="f-wardrobe"> 衣櫃</label>
-<label><input type="checkbox" id="f-pets"> 可養寵物</label>
+<label><input type="checkbox" id="f-window"> å°å¤çª</label>
+<label><input type="checkbox" id="f-net"> å«ç¶²è·¯</label>
+<label><input type="checkbox" id="f-parking"> æ©è»ä½</label>
+<label><input type="checkbox" id="f-wardrobe"> è¡£æ«</label>
+<label><input type="checkbox" id="f-pets"> å¯é¤å¯µç©</label>
 </div>
 <div class="form-row">
-<label>貼文連結</label>
+<label>è²¼æé£çµ</label>
 <input type="url" id="f-link" placeholder="https://rent.591.com.tw/...">
 </div>
 <div class="form-row">
-<label>備註 / 貼文摘要</label>
-<textarea id="f-note" placeholder="貼文原文、注意事項、或備忘..."></textarea>
+<label>åè¨» / è²¼ææè¦</label>
+<textarea id="f-note" placeholder="è²¼æåæãæ³¨æäºé ãæåå¿..."></textarea>
 </div>
 <div class="form-row">
-<label>來源</label>
+<label>ä¾æº</label>
 <select id="f-source">
-<option value="591租屋網">591租屋網</option>
-<option value="FB社團">FB社團</option>
-<option value="">其他</option>
+<option value="591ç§å±ç¶²">591ç§å±ç¶²</option>
+<option value="FBç¤¾å">FBç¤¾å</option>
+<option value="">å¶ä»</option>
 </select>
 </div>
 <div class="modal-actions">
-<button class="btn-cancel" onclick="closeModal()">取消</button>
-<button class="btn-primary" onclick="addListing()">儲存物件</button>
+<button class="btn-cancel" onclick="closeModal()">åæ¶</button>
+<button class="btn-primary" onclick="addListing()">å²å­ç©ä»¶</button>
 </div>
 </div>
 </div>
 
 <script>
-const SAMPLE = []; // 資料改由 data_591.json + data_fb.json 動態載入
+const SAMPLE = []; // è³ææ¹ç± data_591.json + data_fb.json åæè¼å¥
 
 // v4: combined 591 + FB data
 let quickFilter = ""; // "", "pinned", "591", "fb"
 let listings = JSON.parse(localStorage.getItem('rental_listings_v4') || 'null') || SAMPLE;
 let showDismissed = false;
+let viewMode = 'card';
 let nextId = listings.reduce((m,l)=>Math.max(m,l.id),0)+1;
 
 function save(){localStorage.setItem('rental_listings_v4',JSON.stringify(listings));}
 
 function setQuickFilter(f){
-quickFilter = (quickFilter===f)?'':f; // 點同一個取消
+quickFilter = (quickFilter===f)?'':f; // é»åä¸ååæ¶
 render();
 }
 
@@ -277,9 +295,9 @@ const fType = document.getElementById('filterType').value;
 const fElev = document.getElementById('filterElevator').checked;
 const fPark = document.getElementById('filterParking').checked;
 const fWin = document.getElementById('filterWindow').checked;
-// quickFilter 覆蓋 filterSource
-const fSrc = quickFilter==='591' ? '591租屋網'
-           : quickFilter==='fb'  ? 'FB社團'
+// quickFilter è¦è filterSource
+const fSrc = quickFilter==='591' ? '591ç§å±ç¶²'
+           : quickFilter==='fb'  ? 'FBç¤¾å'
            : document.getElementById('filterSource').value;
 
 function matchesFilter(l){
@@ -287,7 +305,7 @@ if(fSrc && l.source !== fSrc) return false;
 if(area && l.station !== area) return false;
 if(l.price > 0 && l.price > maxP) return false;
 if(fType && l.type !== fType) return false;
-if(fElev && l.elevator !== '有') return false;
+if(fElev && l.elevator !== 'æ') return false;
 if(fPark && !l.parking) return false;
 if(fWin && !l.window) return false;
 return true;
@@ -301,7 +319,7 @@ if(sort==='date_desc') return b.date.localeCompare(a.date);
 return 0;
 }
 
-// 釘選永遠顯示（不受租金上限過濾），只受來源 / 捷運站過濾
+// éé¸æ°¸é é¡¯ç¤ºï¼ä¸åç§éä¸ééæ¿¾ï¼ï¼åªåä¾æº / æ·éç«éæ¿¾
 function matchesPinned(l){
 if(fSrc && l.source !== fSrc) return false;
 if(area && l.station !== area) return false;
@@ -312,86 +330,86 @@ const allPinned = listings.filter(l=>l.pinned&&!l.dismissed&&matchesPinned(l)).s
 const allNormal = listings.filter(l=>!l.pinned&&!l.dismissed&&matchesFilter(l)).sort(sortFn);
 const dismissed = listings.filter(l=>l.dismissed);
 
-// quickFilter=pinned 時只顯示釘選區
+// quickFilter=pinned æåªé¡¯ç¤ºéé¸å
 const showPinned = quickFilter!=='pinned' || allPinned.length > 0;
 const showNormal = quickFilter!=='pinned';
 
 document.getElementById('pinned-section').innerHTML = allPinned.length && showPinned
-? `<div class="section-label"><i class="ti ti-pin"></i> 釘選（${allPinned.length}）</div><div class="grid">${allPinned.map(cardHTML).join('')}</div>`
+? `<div class="section-label"><i class="ti ti-pin"></i> éé¸ï¼${allPinned.length}ï¼</div><div class="grid">${allPinned.map(cardHTML).join('')}</div>`
 : '';
 
 if(showNormal){
 document.getElementById('normal-section').innerHTML = allNormal.length
-? `<div class="section-label"><i class="ti ti-list"></i> 物件列表（${allNormal.length}）</div><div class="grid">${allNormal.map(cardHTML).join('')}</div>`
-: `<div class="empty"><i class="ti ti-home-off"></i><br>沒有符合條件的物件</div>`;
+? `<div class="section-label"><i class="ti ti-list"></i> ç©ä»¶åè¡¨ï¼${allNormal.length}ï¼</div><div class="grid">${allNormal.map(cardHTML).join('')}</div>`
+: `<div class="empty"><i class="ti ti-home-off"></i><br>æ²æç¬¦åæ¢ä»¶çç©ä»¶</div>`;
 } else {
 document.getElementById('normal-section').innerHTML = '';
 }
 
 document.getElementById('dismissed-section').innerHTML = !quickFilter && dismissed.length
-? `<div class="show-dismissed" onclick="showDismissed=!showDismissed;render()"><i class="ti ti-eye${showDismissed?'-off':''}"></i> ${showDismissed?'隱藏':'顯示'}已移除物件（${dismissed.length}）</div>${showDismissed?`<div class="grid" style="margin-top:10px">${dismissed.map(cardHTML).join('')}</div>`:''}`
+? `<div class="show-dismissed" onclick="showDismissed=!showDismissed;render()"><i class="ti ti-eye${showDismissed?'-off':''}"></i> ${showDismissed?'é±è':'é¡¯ç¤º'}å·²ç§»é¤ç©ä»¶ï¼${dismissed.length}ï¼</div>${showDismissed?`<div class="grid" style="margin-top:10px">${dismissed.map(cardHTML).join('')}</div>`:''}`
 : '';
 
-// stats bar — 釘選/591/FB 為可點擊篩選鈕
+// stats bar â éé¸/591/FB çºå¯é»æç¯©é¸é
 const active = listings.filter(l=>!l.dismissed);
 const pinCount = active.filter(l=>l.pinned).length;
 const prices = active.filter(l=>l.price>0).map(l=>l.price);
 const avgP = prices.length ? Math.round(prices.reduce((s,p)=>s+p,0)/prices.length) : 0;
 const minP = prices.length ? Math.min(...prices) : 0;
-const cnt591 = active.filter(l=>l.source==='591租屋網').length;
-const cntFB = active.filter(l=>l.source==='FB社團').length;
+const cnt591 = active.filter(l=>l.source==='591ç§å±ç¶²').length;
+const cntFB = active.filter(l=>l.source==='FBç¤¾å').length;
 document.getElementById('stats').innerHTML =
-`<div class="stat">共 <b>${active.length}</b> 筆</div>`+
-(pinCount?`<div class="stat clickable${quickFilter==='pinned'?' active':''}" onclick="setQuickFilter('pinned')" title="只看釘選">📌 釘選 <b>${pinCount}</b></div>`:'')+
-(cnt591?`<div class="stat clickable${quickFilter==='591'?' active':''}" onclick="setQuickFilter('591')" title="只看591">591 <b>${cnt591}</b></div>`:'')+
-(cntFB?`<div class="stat clickable${quickFilter==='fb'?' active':''}" onclick="setQuickFilter('fb')" title="只看FB社團">FB <b>${cntFB}</b></div>`:'')+
-(minP?`<div class="stat">最低 <b>$${minP.toLocaleString()}</b></div>`:'')+
-(avgP?`<div class="stat">均 <b>$${avgP.toLocaleString()}</b></div>`:'');
+`<div class="stat">å± <b>${active.length}</b> ç­</div>`+
+(pinCount?`<div class="stat clickable${quickFilter==='pinned'?' active':''}" onclick="setQuickFilter('pinned')" title="åªçéé¸">ð éé¸ <b>${pinCount}</b></div>`:'')+
+(cnt591?`<div class="stat clickable${quickFilter==='591'?' active':''}" onclick="setQuickFilter('591')" title="åªç591">591 <b>${cnt591}</b></div>`:'')+
+(cntFB?`<div class="stat clickable${quickFilter==='fb'?' active':''}" onclick="setQuickFilter('fb')" title="åªçFBç¤¾å">FB <b>${cntFB}</b></div>`:'')+
+(minP?`<div class="stat">æä½ <b>$${minP.toLocaleString()}</b></div>`:'')+
+(avgP?`<div class="stat">å <b>$${avgP.toLocaleString()}</b></div>`:'');
 }
 
 function cardHTML(l){
 const stars = [];
-if(l.elevator==='有') stars.push('⭐ 電梯');
-if(l.parking) stars.push('⭐ 機車位');
-if(l.wardrobe) stars.push('⭐ 衣櫃');
-if(l.pets) stars.push('⭐ 可寵物');
+if(l.elevator==='æ') stars.push('â­ é»æ¢¯');
+if(l.parking) stars.push('â­ æ©è»ä½');
+if(l.wardrobe) stars.push('â­ è¡£æ«');
+if(l.pets) stars.push('â­ å¯å¯µç©');
 const warns = [];
-if(!l.window) warns.push('窗戶未確認');
-if(!l.net) warns.push('網路未確認');
-const elecBad = l.elec === '台電分攤';
-const srcClass = l.source==='591租屋網'?'src591':'srcfb';
-const srcLabel = l.source==='591租屋網'?'591':'FB';
+if(!l.window) warns.push('çªæ¶æªç¢ºèª');
+if(!l.net) warns.push('ç¶²è·¯æªç¢ºèª');
+const elecBad = l.elec === 'å°é»åæ¤';
+const srcClass = l.source==='591ç§å±ç¶²'?'src591':'srcfb';
+const srcLabel = l.source==='591ç§å±ç¶²'?'591':'FB';
 return `<div class="card${l.pinned?' pinned':''}${l.dismissed?' dismissed':''}">
 <div class="card-header">
 <div class="card-title">${escHtml(l.title)}</div>
 <div class="card-actions">
-<button class="btn-icon${l.pinned?' pin-active':''}" onclick="toggle(${l.id},'pinned')" title="${l.pinned?'取消釘選':'釘選好物件'}">
+<button class="btn-icon${l.pinned?' pin-active':''}" onclick="toggle(${l.id},'pinned')" title="${l.pinned?'åæ¶éé¸':'éé¸å¥½ç©ä»¶'}">
 <i class="ti ti-pin"></i>
 </button>
-<button class="btn-icon${l.dismissed?' remove-active':''}" onclick="toggle(${l.id},'dismissed')" title="${l.dismissed?'還原':'移除（沒興趣）'}">
+<button class="btn-icon${l.dismissed?' remove-active':''}" onclick="toggle(${l.id},'dismissed')" title="${l.dismissed?'éå':'ç§»é¤ï¼æ²èè¶£ï¼'}">
 <i class="ti ti-x"></i>
 </button>
 </div>
 </div>
 ${l.price>0
-? `<div class="price">$${l.price.toLocaleString()}<span>/月${l.size>0?' · '+l.size+'坪':''}</span></div>`
-: `<div class="price-unknown">租金未提及，需確認</div>`}
+? `<div class="price">$${l.price.toLocaleString()}<span>/æ${l.size>0?' Â· '+l.size+'åª':''}</span></div>`
+: `<div class="price-unknown">ç§éæªæåï¼éç¢ºèª</div>`}
 <div class="tags">
 <span class="tag ${srcClass}">${srcLabel}</span>
 <span class="tag">${escHtml(l.type)}</span>
-${l.station?`<span class="tag good"><i class="ti ti-train" style="font-size:11px"></i> ${escHtml(l.station)}站</span>`:''}
+${l.station?`<span class="tag good"><i class="ti ti-train" style="font-size:11px"></i> ${escHtml(l.station)}ç«</span>`:''}
 ${l.floor?`<span class="tag">${escHtml(l.floor)}</span>`:''}
-${l.score>0?`<span class="tag star">評分${l.score}</span>`:''}
-${l.deposit>0?`<span class="tag">押${l.deposit}個月</span>`:''}
+${l.score>0?`<span class="tag star">è©å${l.score}</span>`:''}
+${l.deposit>0?`<span class="tag">æ¼${l.deposit}åæ</span>`:''}
 ${l.elec?`<span class="tag${elecBad?' warn':' good'}">${escHtml(l.elec)}</span>`:''}
-${l.net?`<span class="tag good">含網路</span>`:''}
-${l.window?`<span class="tag good">對外窗</span>`:''}
+${l.net?`<span class="tag good">å«ç¶²è·¯</span>`:''}
+${l.window?`<span class="tag good">å°å¤çª</span>`:''}
 ${stars.map(s=>`<span class="tag star">${s}</span>`).join('')}
 ${warns.map(w=>`<span class="tag warn">${w}</span>`).join('')}
 </div>
-${l.note?`<div class="summary">${escHtml(l.note.slice(0,150))}${l.note.length>150?'…':''}</div>`:''}
+${l.note?`<div class="summary">${escHtml(l.note.slice(0,150))}${l.note.length>150?'â¦':''}</div>`:''}
 <div style="display:flex;align-items:center;justify-content:space-between;margin-top:6px">
-${(()=>{const isUrl=l.link&&/^https?:\/\//i.test(l.link);if(isUrl)return `<a class="post-link" href="${escHtml(l.link)}" target="_blank"><i class="ti ti-external-link"></i> 查看${l.source==='591租屋網'?'591頁面':'貼文'}</a>`;if(l.link)return `<span class="post-link" style="color:var(--text2)" title="${escHtml(l.link)}"><i class="ti ti-phone"></i> ${escHtml(l.link)}</span>`;return '<span></span>';})()}
+${(()=>{const isUrl=l.link&&/^https?:\/\//i.test(l.link);if(isUrl)return `<a class="post-link" href="${escHtml(l.link)}" target="_blank"><i class="ti ti-external-link"></i> æ¥ç${l.source==='591ç§å±ç¶²'?'591é é¢':'è²¼æ'}</a>`;if(l.link)return `<span class="post-link" style="color:var(--text2)" title="${escHtml(l.link)}"><i class="ti ti-phone"></i> ${escHtml(l.link)}</span>`;return '<span></span>';})()}
 <span class="date-badge">${escHtml(l.source||'')} ${escHtml(l.date)}</span>
 </div>
 </div>`;
@@ -404,7 +422,7 @@ function closeModal(){document.getElementById('modal').classList.remove('open');
 
 function addListing(){
 const title = document.getElementById('f-title').value.trim();
-if(!title){alert('請填寫標題');return;}
+if(!title){alert('è«å¡«å¯«æ¨é¡');return;}
 listings.unshift({
 id:nextId++,title,
 price:parseInt(document.getElementById('f-price').value)||0,
@@ -422,7 +440,7 @@ pets:document.getElementById('f-pets').checked,
 deposit:parseInt(document.getElementById('f-deposit').value)||0,
 link:document.getElementById('f-link').value.trim(),
 note:document.getElementById('f-note').value.trim(),
-source:document.getElementById('f-source').value||'手動新增',
+source:document.getElementById('f-source').value||'æåæ°å¢',
 date:new Date().toISOString().slice(0,10),
 pinned:false,dismissed:false,score:0
 });
@@ -435,24 +453,50 @@ document.getElementById('f-elevator').value='';
 }
 
 function exportCSV(){
-const headers=['標題','租金','坪數','樓層','房型','捷運站','電費','電梯','對外窗','網路','機車位','衣櫃','押金','日期','來源','連結','備註','評分'];
+const headers=['æ¨é¡','ç§é','åªæ¸','æ¨å±¤','æ¿å','æ·éç«','é»è²»','é»æ¢¯','å°å¤çª','ç¶²è·¯','æ©è»ä½','è¡£æ«','æ¼é','æ¥æ','ä¾æº','é£çµ','åè¨»','è©å'];
 const rows=listings.filter(l=>!l.dismissed).map(l=>[
 l.title,l.price||'',l.size||'',l.floor,l.type,l.station,l.elec,l.elevator,
-l.window?'是':'否',l.net?'是':'否',l.parking?'是':'否',l.wardrobe?'是':'否',
+l.window?'æ¯':'å¦',l.net?'æ¯':'å¦',l.parking?'æ¯':'å¦',l.wardrobe?'æ¯':'å¦',
 l.deposit||'',l.date,l.source,l.link,l.note,l.score||''
 ].map(v=>'"'+String(v||'').replace(/"/g,'""')+'"'));
 const csv=[headers.map(h=>'"'+h+'"'),...rows].map(r=>r.join(',')).join('\n');
 const blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'});
 const a=document.createElement('a');
 a.href=URL.createObjectURL(blob);
-a.download=`租屋紀錄_${new Date().toISOString().slice(0,10)}.csv`;
+a.download=`ç§å±ç´é_${new Date().toISOString().slice(0,10)}.csv`;
 a.click();
 }
 
+
+function toggleView(){
+  viewMode=viewMode==='card'?'list':'card';
+  document.querySelector('.main').classList.toggle('list-mode',viewMode==='list');
+  const btn=document.getElementById('viewToggle');
+  btn.innerHTML=viewMode==='list'?'<i class="ti ti-layout-grid"></i> 磚塊':'<i class="ti ti-layout-list"></i> 清單';
+  if(viewMode==='list')btn.classList.add('active');else btn.classList.remove('active');
+}
+
+async function syncToGitHub(){
+  let token=localStorage.getItem('gh_sync_token')||'';
+  token=prompt('GitHub Personal Access Token（留空取消）：',token);
+  if(!token)return;
+  localStorage.setItem('gh_sync_token',token);
+  const H={'Authorization':'token '+token,'Accept':'application/vnd.github.v3+json','Content-Type':'application/json'};
+  const state={pinned:listings.filter(l=>l.pinned).map(l=>l.id),dismissed:listings.filter(l=>l.dismissed).map(l=>l.id),updated:new Date().toISOString()};
+  try{
+    const ex=await fetch('https://api.github.com/repos/ran40453/rental-tracker/contents/user_state.json',{headers:H}).then(r=>r.json()).catch(()=>({}));
+    const body={message:'sync: update user state',content:btoa(unescape(encodeURIComponent(JSON.stringify(state,null,2))))};
+    if(ex.sha)body.sha=ex.sha;
+    const r=await fetch('https://api.github.com/repos/ran40453/rental-tracker/contents/user_state.json',{method:'PUT',headers:H,body:JSON.stringify(body)});
+    const d=await r.json();
+    if(d.commit)alert('✅ 同步成功！釘選'+state.pinned.length+'筆，已移除'+state.dismissed.length+'筆');
+    else alert('❌ 同步失敗：'+JSON.stringify(d).slice(0,200));
+  }catch(e){alert('❌ 同步失敗：'+e.message);}
+}
 document.getElementById('modal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeModal();});
 render();
 
-// ── 非同步資料載入器 ──────────────────────────────────────────
+// ââ éåæ­¥è³æè¼å¥å¨ ââââââââââââââââââââââââââââââââââââââââââ
 (async()=>{
   const [r591, rfb] = await Promise.all([
     fetch('data_591.json').then(r=>r.json()).catch(()=>[]),
@@ -461,12 +505,12 @@ render();
   const merged = [...r591, ...rfb];
   const stored = JSON.parse(localStorage.getItem('rental_listings_v4')||null);
   if(stored){
-    // 保留使用者的釘選/移除狀態，同時接受新資料
+    // ä¿çä½¿ç¨èçéé¸/ç§»é¤çæï¼åææ¥åæ°è³æ
     const storedMap = new Map(stored.map(x=>[x.id,x]));
     listings = merged.map(x => storedMap.has(x.id)
       ? {...x, pinned:storedMap.get(x.id).pinned, dismissed:storedMap.get(x.id).dismissed}
       : x);
-    // 保留使用者手動新增的物件（id 不在 merged 裡）
+    // ä¿çä½¿ç¨èæåæ°å¢çç©ä»¶ï¼id ä¸å¨ merged è£¡ï¼
     const mergedIds = new Set(merged.map(x=>x.id));
     stored.filter(x=>!mergedIds.has(x.id)).forEach(x=>listings.push(x));
   } else {
@@ -475,7 +519,7 @@ render();
   nextId = listings.reduce((m,l)=>Math.max(m,l.id),0)+1;
   render();
 })();
-// ─────────────────────────────────────────────────────────────
+// âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 </script>
 </body>
 </html>
