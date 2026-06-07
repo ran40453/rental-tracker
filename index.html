@@ -94,21 +94,34 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .export-btn{height:32px;padding:0 14px;border:0.5px solid var(--border);border-radius:var(--radius);background:transparent;color:var(--text2);font-size:12px;cursor:pointer;display:flex;align-items:center;gap:5px}
 .export-btn:hover{background:var(--bg2)}
 .date-badge{font-size:11px;color:var(--text3);margin-top:6px}
+/* List rows */
+.list-container{display:flex;flex-direction:column;gap:3px}
+.list-row{display:flex;align-items:center;background:var(--bg);border:0.5px solid var(--border);border-radius:var(--radius);padding:7px 12px;transition:border-color .15s;min-height:48px}
+.list-row:hover{border-color:var(--border2)}
+.list-row.pinned{border-left:3px solid var(--purple);border-color:var(--purple-border)}
+.list-row.dismissed{opacity:.4}
+.lr-actions{display:flex;gap:3px;flex-shrink:0;margin-right:8px}
+.lr-src{flex-shrink:0;margin-right:8px}
+.lr-title{flex:3;min-width:0;font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-right:12px}
+.lr-title .lr-sub{display:block;font-size:11px;color:var(--text2);font-weight:400;margin-top:1px}
+.lr-price{width:96px;flex-shrink:0;font-size:15px;font-weight:700;color:var(--green);margin-right:10px;white-space:nowrap}
+.lr-price small{font-size:11px;color:var(--text2);font-weight:400}
+.lr-station{width:72px;flex-shrink:0;margin-right:8px}
+.lr-tags{flex:2;display:flex;gap:4px;overflow:hidden;flex-wrap:nowrap;min-width:0;align-items:center}
+.lr-link{flex-shrink:0;margin-left:8px}
+/* Filter bar */
+.filterbar{padding:8px 20px;gap:0}
+.filter-group{display:flex;align-items:center;gap:6px;padding:4px 12px;border-right:1px solid var(--border)}
+.filter-group:last-child{border-right:none}
+.filter-group .flabel{font-size:11px;font-weight:600;color:var(--text3);letter-spacing:.04em;white-space:nowrap}
+.filter-checks{display:flex;gap:10px}
+.filter-checks label{font-size:12px;color:var(--text2);cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:4px}
+.filterbar select,.filterbar input[type=text]{height:28px;padding:0 6px;font-size:12px}
 .view-toggle{height:32px;padding:0 12px;border:0.5px solid var(--border);border-radius:var(--radius);background:transparent;color:var(--text2);font-size:12px;cursor:pointer;display:flex;align-items:center;gap:5px}
 .view-toggle:hover{background:var(--bg2)}
 .view-toggle.active{background:var(--purple-bg);color:var(--purple-text);border-color:var(--purple-border)}
 .sync-btn{height:32px;padding:0 12px;border:0.5px solid var(--purple-border);border-radius:var(--radius);background:var(--purple-bg);color:var(--purple-text);font-size:12px;cursor:pointer;display:flex;align-items:center;gap:5px}
 .sync-btn:hover{opacity:0.85}
-.main.list-mode .grid{display:flex;flex-direction:column;gap:6px}
-.main.list-mode .card{display:flex;align-items:center;padding:8px 14px;gap:12px}
-.main.list-mode .card-header{margin-bottom:0;flex:3;min-width:0}
-.main.list-mode .card-title{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.main.list-mode .price{margin-bottom:0;font-size:15px;width:96px;flex-shrink:0}
-.main.list-mode .price-unknown{margin-bottom:0;width:96px;flex-shrink:0;font-size:12px}
-.main.list-mode .tags{margin-bottom:0;flex:2;flex-wrap:nowrap;overflow:hidden;gap:3px}
-.main.list-mode .summary{display:none}
-.main.list-mode .card>div:last-child{flex-shrink:0;margin-top:0}
-.main.list-mode .date-badge{display:none}
 </style>
 </head>
 <body>
@@ -123,23 +136,28 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 </div>
 
 <div class="filterbar">
+<div class="filter-group">
 <span class="flabel">排序</span>
 <select id="sort" onchange="render()">
-<option value="score_desc">評分高→低</option>
+<option value="score_desc">評分↓</option>
 <option value="pinned">釘選優先</option>
-<option value="price_asc">租金低→高</option>
-<option value="price_desc">租金高→低</option>
-<option value="date_desc">最新加入</option>
+<option value="price_asc">租金↑</option>
+<option value="price_desc">租金↓</option>
+<option value="date_desc">最新</option>
 </select>
+</div>
+<div class="filter-group">
 <span class="flabel">來源</span>
 <select id="filterSource" onchange="render()">
 <option value="">全部</option>
-<option value="591租屋網">591租屋網</option>
-<option value="FB社團">FB社團</option>
+<option value="591租屋網">591</option>
+<option value="FB社團">FB</option>
 </select>
+</div>
+<div class="filter-group">
 <span class="flabel">捷運站</span>
 <select id="filterArea" onchange="render()">
-<option value="">全部</option>
+<option value="">全線</option>
 <option value="頂埔">頂埔</option>
 <option value="土城">土城</option>
 <option value="海山">海山</option>
@@ -150,9 +168,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 <option value="新埔">新埔</option>
 <option value="江子翠">江子翠</option>
 </select>
-<span class="flabel">租金上限</span>
-<input type="range" id="maxPrice" min="5000" max="20000" step="500" value="15000" oninput="document.getElementById('priceOut').textContent='$'+Number(this.value).toLocaleString();render()">
-<span class="flabel" id="priceOut">$15,000</span>
+</div>
+<div class="filter-group">
+<span class="flabel">租金 ≤</span>
+<input type="range" id="maxPrice" min="5000" max="20000" step="500" value="15000" oninput="document.getElementById('priceOut').textContent='$'+Number(this.value).toLocaleString();render()" style="width:90px;accent-color:var(--purple)">
+<span id="priceOut" style="font-size:12px;font-weight:600;color:var(--text);min-width:52px">$15,000</span>
+</div>
+<div class="filter-group">
 <span class="flabel">房型</span>
 <select id="filterType" onchange="render()">
 <option value="">全部</option>
@@ -161,9 +183,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 <option value="分租套房">分租套房</option>
 <option value="整層">整層</option>
 </select>
-<label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text2);cursor:pointer"><input type="checkbox" id="filterElevator" onchange="render()"> 電梯</label>
-<label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text2);cursor:pointer"><input type="checkbox" id="filterParking" onchange="render()"> 機車位</label>
-<label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text2);cursor:pointer"><input type="checkbox" id="filterWindow" onchange="render()"> 對外窗</label>
+</div>
+<div class="filter-group filter-checks">
+<label><input type="checkbox" id="filterElevator" onchange="render()"> 電梯</label>
+<label><input type="checkbox" id="filterParking" onchange="render()"> 機車位</label>
+<label><input type="checkbox" id="filterWindow" onchange="render()"> 對外窗</label>
+</div>
 </div>
 
 <div class="main">
@@ -335,19 +360,19 @@ const showPinned = quickFilter!=='pinned' || allPinned.length > 0;
 const showNormal = quickFilter!=='pinned';
 
 document.getElementById('pinned-section').innerHTML = allPinned.length && showPinned
-? `<div class="section-label"><i class="ti ti-pin"></i> 釘選（${allPinned.length}）</div><div class="grid">${allPinned.map(cardHTML).join('')}</div>`
+? `<div class="section-label"><i class="ti ti-pin"></i> 釘選（${allPinned.length}）</div>${viewMode==='list'?'<div class="list-container">'+allPinned.map(listRowHTML).join('')+'</div>':'<div class="grid">'+allPinned.map(cardHTML).join('')+'</div>'}`
 : '';
 
 if(showNormal){
 document.getElementById('normal-section').innerHTML = allNormal.length
-? `<div class="section-label"><i class="ti ti-list"></i> 物件列表（${allNormal.length}）</div><div class="grid">${allNormal.map(cardHTML).join('')}</div>`
+? `<div class="section-label"><i class="ti ti-list"></i> 物件列表（${allNormal.length}）</div>${viewMode==='list'?'<div class="list-container">'+allNormal.map(listRowHTML).join('')+'</div>':'<div class="grid">'+allNormal.map(cardHTML).join('')+'</div>'}`
 : `<div class="empty"><i class="ti ti-home-off"></i><br>沒有符合條件的物件</div>`;
 } else {
 document.getElementById('normal-section').innerHTML = '';
 }
 
 document.getElementById('dismissed-section').innerHTML = !quickFilter && dismissed.length
-? `<div class="show-dismissed" onclick="showDismissed=!showDismissed;render()"><i class="ti ti-eye${showDismissed?'-off':''}"></i> ${showDismissed?'隱藏':'顯示'}已移除物件（${dismissed.length}）</div>${showDismissed?`<div class="grid" style="margin-top:10px">${dismissed.map(cardHTML).join('')}</div>`:''}`
+? `<div class="show-dismissed" onclick="showDismissed=!showDismissed;render()"><i class="ti ti-eye${showDismissed?'-off':''}"></i> ${showDismissed?'隱藏':'顯示'}已移除物件（${dismissed.length}）</div>${showDismissed?`${viewMode==='list'?'<div class="list-container" style="margin-top:10px">'+dismissed.map(listRowHTML).join('')+'</div>':'<div class="grid" style="margin-top:10px">'+dismissed.map(cardHTML).join('')+'</div>'}`:''}`
 : '';
 
 // stats bar — 釘選/591/FB 為可點擊篩選鈕
@@ -468,6 +493,36 @@ a.click();
 }
 
 
+
+function listRowHTML(l){
+  const isUrl=l.link&&/^https?:\/\//i.test(l.link);
+  const srcClass=l.source==='591租屋網'?'src591':'srcfb';
+  const srcLabel=l.source==='591租屋網'?'591':'FB';
+  const elecBad=l.elec==='台電分攤';
+  const keyTags=[
+    l.type?'<span class="tag">'+escHtml(l.type)+'</span>':'',
+    l.floor?'<span class="tag">'+escHtml(l.floor)+'</span>':'',
+    l.elec?'<span class="tag '+(elecBad?'warn':'good')+'">'+escHtml(l.elec)+'</span>':'',
+    l.elevator==='有'?'<span class="tag good">⭐電梯</span>':'',
+    l.net?'<span class="tag good">含網路</span>':'',
+    l.window?'<span class="tag good">對外窗</span>':'',
+    l.parking?'<span class="tag good">機車位</span>':'',
+    l.score>0?'<span class="tag star">評分'+l.score+'</span>':'',
+  ].filter(Boolean).join('');
+  const sd=[l.size>0?l.size+'坪':'',l.deposit>0?'押'+l.deposit+'個月':''].filter(Boolean).join(' · ');
+  return '<div class="list-row'+(l.pinned?' pinned':'')+( l.dismissed?' dismissed':'')+'">'+
+    '<div class="lr-actions">'+
+      '<button class="btn-icon'+(l.pinned?' pin-active':'')+'" onclick="toggle('+l.id+',\'pinned\')" title="'+(l.pinned?'取消釘選':'釘選')+'"><i class="ti ti-pin"></i></button>'+
+      '<button class="btn-icon'+(l.dismissed?' remove-active':'')+'" onclick="toggle('+l.id+',\'dismissed\')" title="'+(l.dismissed?'還原':'移除')+'"><i class="ti ti-x"></i></button>'+
+    '</div>'+
+    '<div class="lr-src"><span class="tag '+srcClass+'">'+srcLabel+'</span></div>'+
+    '<div class="lr-title">'+escHtml(l.title)+(sd?'<span class="lr-sub">'+escHtml(sd)+'</span>':'')+'</div>'+
+    '<div class="lr-price">'+(l.price>0?'$'+l.price.toLocaleString()+'<small>/月</small>':'<small style="color:var(--text3)">面議</small>')+'</div>'+
+    '<div class="lr-station">'+(l.station?'<span class="tag good" style="white-space:nowrap"><i class="ti ti-train" style="font-size:10px"></i> '+escHtml(l.station)+'站</span>':'')+'</div>'+
+    '<div class="lr-tags">'+keyTags+'</div>'+
+    '<div class="lr-link">'+(isUrl?'<a class="post-link" href="'+escHtml(l.link)+'" target="_blank" style="font-size:11px"><i class="ti ti-external-link"></i> 查看</a>':l.link?'<span class="post-link" style="color:var(--text2);cursor:default;font-size:11px" title="'+escHtml(l.link)+'"><i class="ti ti-phone"></i></span>':'')+'</div>'+
+  '</div>';
+}
 function toggleView(){
   viewMode=viewMode==='card'?'list':'card';
   document.querySelector('.main').classList.toggle('list-mode',viewMode==='list');
